@@ -11,24 +11,24 @@
     <div class="card filter-card bg-white">
       <div class="card-header"><i class="bi bi-funnel-fill me-2"></i>Filter Berita</div>
       <div class="card-body p-4">
-        <form method="GET" action="{{ route('berita.index') }}">
-          <div class="mb-4">
-            <label for="q">Kata Kunci</label>
-            <input type="text" id="q" name="q" value="{{ request('q') }}"
-                   class="form-control form-control-lg" placeholder="Cari berita...">
-          </div>
-          <div class="mb-4">
-            <label for="kategori">Kategori</label>
-            <select id="kategori" name="kategori" class="form-select">
-              <option value="">Semua Kategori</option>
-              @foreach($kategori as $k)
-                <option value="{{ $k }}" @selected(request('kategori') == $k)>{{ $k }}</option>
-              @endforeach
-            </select>
-          </div>
+        <form action="{{ route('berita.index') }}" method="GET">
+          <input type="text" name="kata_kunci" class="form-control mb-3"
+                 placeholder="Cari judul..." value="{{ request('kata_kunci') }}">
+
+          <select name="kategori" class="form-select mb-3">
+            <option value="">Semua Kategori</option>
+            @foreach ($kategoris as $k)
+              <option value="{{ $k->id }}" @selected(request('kategori') == $k->id)>{{ $k->nama }}</option>
+            @endforeach
+          </select>
+
           <button type="submit" class="btn btn-primary w-100 py-2 mb-2">Cari</button>
           <a href="{{ route('berita.index') }}" class="btn btn-outline-secondary w-100">Reset</a>
         </form>
+
+        @auth
+          <a href="{{ route('berita.create') }}" class="btn btn-success w-100 mt-3">+ Tambah Berita</a>
+        @endauth
       </div>
     </div>
   </aside>
@@ -36,34 +36,52 @@
   {{-- DAFTAR BERITA --}}
   <section class="col-lg-9">
     <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
-      @forelse($berita as $b)
+      @forelse ($beritas as $berita)
         <div class="col">
           <article class="card card-berita h-100 bg-white">
-            <a href="{{ route('berita.show', $b->slug) }}">
-              <img class="cover" src="{{ $b->gambar }}" alt="{{ $b->judul }}">
-            </a>
+            @if ($berita->gambar_url)
+              <a href="{{ route('berita.show', $berita) }}">
+                <img class="cover" src="{{ $berita->gambar_url }}" alt="{{ $berita->judul }}">
+              </a>
+            @endif
             <div class="card-body d-flex flex-column p-4">
-              <div class="d-flex align-items-center gap-2 mb-3">
-                <span class="badge badge-kat">{{ $b->kategori }}</span>
-                <span class="tgl"><i class="bi bi-calendar3 me-1"></i>{{ $b->tanggal->translatedFormat('j M Y') }}</span>
+              <div class="mb-2">
+                <span class="badge badge-kategori text-white bg-primary">{{ $berita->kategori->nama }}</span>
               </div>
 
               <h5 class="judul mb-3">
-                <a href="{{ route('berita.show', $b->slug) }}">{{ \Illuminate\Support\Str::limit($b->judul, 70) }}</a>
+                <a href="{{ route('berita.show', $berita) }}">{{ \Illuminate\Support\Str::limit($berita->judul, 70) }}</a>
               </h5>
 
-              <p class="ringkas mb-3">{{ $b->ringkasan }}...</p>
+              <p class="ringkas mb-3">{{ \Illuminate\Support\Str::limit($berita->ringkasan ?: strip_tags($berita->isi), 100) }}</p>
 
-              <div class="mb-3">
-                @foreach(array_slice($b->daftar_tag, 0, 3) as $t)
-                  <a href="#" class="tag-pill">#{{ $t }}</a>
+              <div class="mb-2">
+                @foreach ($berita->tags as $tag)
+                  <a href="{{ route('berita.index', ['tag' => $tag->id]) }}"
+                     class="tag-pill text-decoration-none">#{{ $tag->nama }}</a>
                 @endforeach
               </div>
 
               <div class="mt-auto d-flex justify-content-between align-items-center">
-                <span class="dibaca"><i class="bi bi-eye-fill me-1"></i>{{ number_format($b->dibaca) }}</span>
-                <a href="{{ route('berita.show', $b->slug) }}" class="btn-baca">Baca <i class="bi bi-arrow-right ms-1"></i></a>
+                <span class="dibaca"><i class="bi bi-eye-fill me-1"></i>{{ number_format($berita->dibaca) }}</span>
+                <a href="{{ route('berita.show', $berita) }}" class="btn-baca">Baca <i class="bi bi-arrow-right ms-1"></i></a>
               </div>
+
+              @auth
+                <div class="mt-2 pt-2 border-top d-flex gap-2">
+                  <a href="{{ route('berita.edit', $berita) }}"
+                     class="btn btn-sm btn-outline-warning">Edit</a>
+
+                  @if (auth()->user()->isAdmin())
+                    <form action="{{ route('berita.destroy', $berita) }}" method="POST"
+                          onsubmit="return confirm('Yakin hapus berita ini?')">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                    </form>
+                  @endif
+                </div>
+              @endauth
             </div>
           </article>
         </div>
@@ -74,9 +92,9 @@
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-5">
       <small class="text-muted">
-        Showing {{ $berita->firstItem() ?? 0 }} to {{ $berita->lastItem() ?? 0 }} of {{ $berita->total() }} results
+        Showing {{ $beritas->firstItem() ?? 0 }} to {{ $beritas->lastItem() ?? 0 }} of {{ $beritas->total() }} results
       </small>
-      {{ $berita->links() }}
+      {{ $beritas->links() }}
     </div>
   </section>
 </div>

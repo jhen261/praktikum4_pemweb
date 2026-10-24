@@ -13,13 +13,12 @@ return new class extends Migration
             $table->string('judul');
             $table->string('slug')->unique();
             $table->string('kategori');
-            $table->string('gambar');
-            $table->text('ringkasan');
+            $table->text('gambar')->nullable();
+            $table->text('ringkasan')->nullable();
             $table->longText('isi')->nullable();
-            $table->string('tags');
-            $table->string('penulis')->nullable();
+            $table->string('tags')->nullable();
+            $table->date('tanggal')->nullable();
             $table->unsignedInteger('dibaca')->default(0);
-            $table->date('tanggal');
             $table->timestamps();
         });
     }

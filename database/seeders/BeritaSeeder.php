@@ -2,39 +2,50 @@
 
 namespace Database\Seeders;
 
-use App\Models\Berita;
+use App\Models\Kategori;
+use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class BeritaSeeder extends Seeder
 {
     public function run(): void
     {
-        $img = 'https://jalatrang.id/assets/images/web_berita/';
+        $admin = User::where('email', 'admin@desa.test')->first();
+        $editor = User::where('email', 'editor@desa.test')->first();
 
-        Berita::create([
-            'judul'     => 'Malam Penuh Gengsi Dimulai! 16 Tim Berebut Mahkota Juara di Ajang CVC Cup 2026 Desa Jalatrang',
-            'slug'      => 'malam-penuh-gengsi-dimulai-16-tim-berebut-mahkota-juara-di-ajang-cvc-cup-2026-desa-jalatrang',
-            'kategori'  => 'Olahraga',
-            'gambar'    => $img . '1790662317-whatsapp-image-2026-09-27-at-081321.jpeg',
-            'ringkasan' => 'JalatrangNews; Himpunan Pemuda-Pemudi Dusun Cikandung yang tergabung dalam Cikandung Voli',
-            'isi'       => 'TEMPEL ISI LENGKAP dari halaman detail berita di jalatrang.id',
-            'tags'      => 'cikandung,dusun,2026,voli,desa,jalatrang,cipaku,hingga,kecamatan,malam',
-            'penulis'   => 'Dadi Haryadi',
-            'dibaca'    => 369,
-            'tanggal'   => '2026-09-26',
+        $olahraga = Kategori::where('nama', 'Olahraga')->first();
+        $pendidikan = Kategori::where('nama', 'Pendidikan')->first();
+        $potensi = Kategori::where('nama', 'Potensi')->first();
+
+        // Dibuat lewat relasi user: user_id terisi otomatis
+        $b1 = $admin->beritas()->create([
+            'judul' => 'Turnamen Voli Antar Dusun Resmi Dibuka',
+            'slug' => 'turnamen-voli-antar-dusun-resmi-dibuka',
+            'kategori_id' => $olahraga->id,
+            'ringkasan' => 'Turnamen voli tahunan antar dusun resmi dibuka oleh kepala desa',
+            'isi' => 'Turnamen voli tahunan antar dusun resmi dibuka oleh kepala desa...',
+            'tanggal' => '2026-10-01',
+        ]);
+        $b2 = $editor->beritas()->create([
+            'judul' => 'Sosialisasi Bank Sampah untuk Warga',
+            'slug' => 'sosialisasi-bank-sampah-untuk-warga',
+            'kategori_id' => $pendidikan->id,
+            'ringkasan' => 'Pemerintah desa mengadakan sosialisasi pengelolaan sampah',
+            'isi' => 'Pemerintah desa mengadakan sosialisasi pengelolaan sampah...',
+            'tanggal' => '2026-10-02',
+        ]);
+        $b3 = $editor->beritas()->create([
+            'judul' => 'Panen Raya Kelompok Wanita Tani',
+            'slug' => 'panen-raya-kelompok-wanita-tani',
+            'kategori_id' => $potensi->id,
+            'ringkasan' => 'Kelompok wanita tani desa berhasil panen sayuran organik',
+            'isi' => 'Kelompok wanita tani desa berhasil panen sayuran organik...',
+            'tanggal' => '2026-10-03',
         ]);
 
-        Berita::create([
-            'judul'     => 'Pemerintah Desa Jalatrang Kukuhkan Desa Siaga TB, Perkuat Kolaborasi Lintas Sektor Basmi Tuberkulosis',
-            'slug'      => 'pemerintah-desa-jalatrang-kukuhkan-desa-siaga-tb-perkuat-kolaborasi-lintas-sektor-basmi-tuberkulosis',
-            'kategori'  => 'Pendidikan',
-            'gambar'    => $img . '1790660451-whatsapp-image-2026-09-28-at-102755.jpeg',
-            'ringkasan' => 'JalatrangNews; Pemerintah Desa Jalatrang, Kecamatan Cipaku, Kabupaten Ciamis, menunjukkan',
-            'isi'       => 'TEMPEL ISI LENGKAP dari halaman detail berita di jalatrang.id',
-            'tags'      => 'desa,jalatrang,siaga',
-            'penulis'   => 'Pemerintah Desa Jalatrang',
-            'dibaca'    => 143,
-            'tanggal'   => '2026-09-28',
-        ]);
+        $b1->tags()->attach(Tag::whereIn('nama', ['desa', 'kegiatan'])->pluck('id'));
+        $b2->tags()->attach(Tag::whereIn('nama', ['warga', 'lingkungan'])->pluck('id'));
+        $b3->tags()->attach(Tag::whereIn('nama', ['desa', 'ekonomi'])->pluck('id'));
     }
 }
